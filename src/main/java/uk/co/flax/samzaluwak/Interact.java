@@ -57,7 +57,7 @@ public class Interact {
         String query = parts[2];
 
         KeyedMessage<String, String> message
-                = new KeyedMessage<>(MonitorTask.QUERIES_STREAM, id, 0, "{ \"query\" : \"" + query + "\"}");
+                = new KeyedMessage<>(MonitorTask.QUERIES_STREAM, id, "{ \"query\" : \"" + query + "\"}");
         producer.send(message);
 
     }
@@ -68,9 +68,11 @@ public class Interact {
         String id = parts[1];
         String doc = parts[2];
 
-        KeyedMessage<String, String> message =
-                new KeyedMessage<>(MonitorTask.DOCS_STREAM, id, 0, "{ \"f\" : \"" + doc + "\"}");
-        producer.send(message);
+        for (int i = 0; i < MatchRecombinerTask.QUERY_PARTITIONS; i++) {
+            KeyedMessage<String, String> message =
+                    new KeyedMessage<>(MonitorTask.DOCS_STREAM, id, i, "{ \"f\" : \"" + doc + "\"}");
+            producer.send(message);
+        }
 
     }
 

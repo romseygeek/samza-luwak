@@ -51,11 +51,13 @@ public class MonitorTask implements StreamTask, InitableTask {
         String stream = message.getSystemStreamPartition().getStream();
         switch (stream) {
             case QUERIES_STREAM:
+                logger.info("Adding new query for partition {}: {}", message.getSystemStreamPartition().getPartition().getPartitionId(), message.getMessage());
                 update((String) message.getKey(), (Map<String, String>) message.getMessage());
                 break;
             case DOCS_STREAM:
                 Matches<QueryMatch> matches = match((String) message.getKey(), (Map<String, String>) message.getMessage());
-                collector.send(new OutgoingMessageEnvelope(MATCHES_STREAM, message.getKey(), matches));
+                String key = message.getKey() + "_" + message.getSystemStreamPartition().getPartition().getPartitionId();
+                collector.send(new OutgoingMessageEnvelope(MATCHES_STREAM, message.getKey(), key, matches));
                 break;
             default:
                 throw new RuntimeException("Unknown stream: " + stream);
